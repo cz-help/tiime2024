@@ -1,0 +1,2 @@
+#!/bin/bash
+docker run --rm -v $(basename $(pwd))_midpoint_home:/opt/midpoint/var -v ./ISRG_root_x1.pem:/tmp/cert.pem evolveum/midpoint:${MP_VER:-latest}-alpine bash -c "keytool -keystore /opt/midpoint/var/keystore.jceks -storetype jceks -storepass changeit -import -alias letsencryptroot -trustcacerts -file /tmp/cert.pem -noprompt; echo ' - - - - - - - -'; keytool -list -keystore /opt/midpoint/var/keystore.jceks -storetype jceks -storepass changeit ;"

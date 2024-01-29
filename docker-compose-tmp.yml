@@ -1,0 +1,96 @@
+version: "3.3"
+
+services:
+  midpoint_data:
+    image: postgres:16-alpine
+    environment:
+     - POSTGRES_PASSWORD=db.secret.pw.007
+     - POSTGRES_USER=midpoint
+     - POSTGRES_INITDB_ARGS=--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8
+    networks:
+     - net
+    volumes:
+     - midpoint_data:/var/lib/postgresql/data
+
+  move-log:
+    image: evolveum/midpoint:${MP_VER:-latest}-alpine
+    command: >
+        bash -c "
+        cd /opt/midpoint/var ;
+        mkdir logs ;
+        if [ -e log ] ;
+        then mv log logs/node1 ;
+        else mkdir logs/node1 ;
+        fi ;
+        ln -s logs/node1 log ;
+        echo 'Log directory hase been moved...' ;
+        "
+    volumes:
+     - midpoint_home:/opt/midpoint/var
+
+  add-cert:
+    image: evolveum/midpoint:${MP_VER:-latest}-alpine
+    command: >
+        bash -c "
+        keytool -keystore /opt/midpoint/var/keystore.jceks -storetype jceks -storepass changeit -import -alias letsencryptroot -trustcacerts -file /tmp/cert.pem -noprompt;
+        echo ' - - - - - - - -';
+        keytool -list -keystore /opt/midpoint/var/keystore.jceks -storetype jceks -storepass changeit ;
+        "
+    volumes:
+     - midpoint_home:/opt/midpoint/var
+     - ./ISRG_root_x1.pem:/tmp/cert.pem
+
+  del-cert:
+    image: evolveum/midpoint:${MP_VER:-latest}-alpine
+    command: >
+        bash -c "
+        keytool -keystore /opt/midpoint/var/keystore.jceks -storetype jceks -storepass changeit -delete -alias letsencryptroot -noprompt;
+        echo ' - - - - - - - -';
+        keytool -list -keystore /opt/midpoint/var/keystore.jceks -storetype jceks -storepass changeit ;
+        "
+    volumes:
+     - midpoint_home:/opt/midpoint/var
+
+
+  add-ssh:
+    image: evolveum/midpoint:${MP_VER:-latest}-alpine
+    command: >
+        bash -c "
+        ls -la /opt/midpoint/var/connid-connectors ; 
+        echo ' - - - - - - - -' ; 
+        cp /tmp/connector-ssh-1.0.jar /opt/midpoint/var/connid-connectors ; 
+        ls -la /opt/midpoint/var/connid-connectors ;
+        "
+    volumes:
+     - midpoint_home:/opt/midpoint/var
+     - ./connector-ssh-1.0.jar:/tmp/connector-ssh-1.0.jar
+
+  test:
+    image: evolveum/midpoint:${MP_VER:-latest}-alpine
+    command: >
+        bash -c "
+        echo 'I am ready to work...' ;
+        "
+    depends_on:
+      midpoint_data:
+        condition: service_started
+    environment:
+     - MP_SET_midpoint_repository_jdbcUsername=midpoint
+     - MP_SET_midpoint_repository_jdbcPassword=db.secret.pw.007
+     - MP_SET_midpoint_repository_jdbcUrl=jdbc:postgresql://midpoint_data:5432/midpoint
+     - MP_SET_midpoint_repository_database=postgresql
+     - MP_SET_midpoint_administrator_initialPassword=Secret.007
+     - MP_UNSET_midpoint_repository_hibernateHbm2ddl=1
+     - MP_NO_ENV_COMPAT=1
+    networks:
+     - net
+    volumes:
+     - midpoint_home:/opt/midpoint/var
+
+networks:
+  net:
+    driver: bridge
+
+volumes:
+  midpoint_data:
+  midpoint_home:
