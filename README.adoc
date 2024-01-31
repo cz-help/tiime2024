@@ -1,0 +1,119 @@
+= tiime2024
+
+This repository contain the file used for container related workshop as a part of MidPoint Working Group on tiime 2024 - Copenhagen.
+
+https://tiime-unconference.eu/
+
+https://evolveum.com/wp-content/uploads/mwg-at-the-tiime-2024.pdf
+
+== Docker compose files
+
+=== "direct use"
+
+There is few docker compose files which can be used to "start" the scenario.
+
+* docker-compose.yml +
+basic environment with native repository @ postgreSQL.
+
+* docker-compose-cluster.yml +
+Environment focused to clustered setup.
+There are available several profiles.
+
+** "default" (without explicit set of the profile) +
+basic environment with 1 node and repository without reverse proxy (http).
+
+*** http://localhost:8081/midpoint/ - node1
+
+** node2 +
+2 node clustered setup without reverse proxy.
+
+*** http://localhost:8081/midpoint/ - node1
+*** http://localhost:8082/midpoint/ - node2
+
+** node3 +
+3 node clustered setup without reverse proxy.
+
+*** http://localhost:8081/midpoint/ - node1
+*** http://localhost:8082/midpoint/ - node2
+*** http://localhost:8083/midpoint/ - node3
+
+** node4 +
+4 node clustered setup without reverse proxy.
+
+*** http://localhost:8081/midpoint/ - node1
+*** http://localhost:8082/midpoint/ - node2
+*** http://localhost:8083/midpoint/ - node3
+*** http://localhost:8084/midpoint/ - node4
+
+** proxy +
+4 node clustered setup with reverse proxy (generated self signed certificates).
+
+*** http://localhost:8081/midpoint/ - node1 (direct access)
+*** http://localhost:8082/midpoint/ - node2 (direct access)
+*** http://localhost:8083/midpoint/ - node3 (direct access)
+*** http://localhost:8084/midpoint/ - node4 (direct access)
+*** http://localhost/ - redirect to https
+*** https://localhost/
+
+=== pre-defined services for operations
+
+There is available docker compose file which is focused for admin operations.
+This file is not suppose to be run directly - it should be used to run specific service only.
+
+* docker-compose-tmp.yml
+
+All the prepared services are operating on the volume related to the midPoint container.
+
+There are following services defined:
+
+** move-log +
+Create the directory */opt/midpoint/var/logs/node1*.
+Move the content of log directory into this new directory.
+Set the symlink to /opt/midpoint/var/log .
+
+** add-cert +
+Add the certificate to the keystore.
+There is prepared certificate for this purpose - Root CA cert used in Let's encrypt chain (https://letsencrypt.org/).
+E.g. adding new or re-new certificate.
+
+** del-cert +
+Remove the previously added Let's encrypt root CA cert from the keystore.
+E.g. removing the expired certificate.
+
+** add-ssh +
+Add the ssh connector to the filesystem.
+The connector is autodetected (without restart).
+
+== Executable files
+
+* add-cert.sh +
+Add the prepared certificate to the keystore on the volume.
+
+* add-conn.sh +
+Adding SSH connector from "external" file system into the volume.
+
+* del-cert.sh +
+Delete the prepared certificate from the kystore on the volume.
+
+* execute.sh +
+Execute the script on the midPoint instance using REST API.
+There is needed to provide the script as the parameter.
+
+* list-cert.sh +
+List the content of the kystore on the volume.
+
+== Data files
+
+* add_subscription_id.xml +
+Delta for the system coniguration adding Subscription ID and name (visible in the title).
+The file contain real value with limited validity - it is valid for few weeks only.
+
+* del_subscription_id.xml +
+Delta for the system coniguration removing Subscription ID and name (visible in the title).
+
+* connector-ssh-1.0.jar +
+SSH connector - https://docs.evolveum.com/connectors/connectors/com.evolveum.polygon.connector.ssh.SshConnector/
+
+* ISRG_root_x1.pem +
+Let's enrypt root CA - http://x1.i.lencr.org/
+

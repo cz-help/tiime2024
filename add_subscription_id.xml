@@ -35,7 +35,7 @@
                     <t:modificationType>add</t:modificationType>
                     <t:path>deploymentInformation</t:path>
                     <t:value>
-		        <subscriptionIdentifier>...</subscriptionIdentifier>
+		        <subscriptionIdentifier>010324909813</subscriptionIdentifier>
                         <name>... with subscription</name>
                     </t:value>
                 </s:itemDelta>

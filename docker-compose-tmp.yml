@@ -1,17 +1,6 @@
 version: "3.3"
 
 services:
-  midpoint_data:
-    image: postgres:16-alpine
-    environment:
-     - POSTGRES_PASSWORD=db.secret.pw.007
-     - POSTGRES_USER=midpoint
-     - POSTGRES_INITDB_ARGS=--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8
-    networks:
-     - net
-    volumes:
-     - midpoint_data:/var/lib/postgresql/data
-
   move-log:
     image: evolveum/midpoint:${MP_VER:-latest}-alpine
     command: >
@@ -65,32 +54,5 @@ services:
      - midpoint_home:/opt/midpoint/var
      - ./connector-ssh-1.0.jar:/tmp/connector-ssh-1.0.jar
 
-  test:
-    image: evolveum/midpoint:${MP_VER:-latest}-alpine
-    command: >
-        bash -c "
-        echo 'I am ready to work...' ;
-        "
-    depends_on:
-      midpoint_data:
-        condition: service_started
-    environment:
-     - MP_SET_midpoint_repository_jdbcUsername=midpoint
-     - MP_SET_midpoint_repository_jdbcPassword=db.secret.pw.007
-     - MP_SET_midpoint_repository_jdbcUrl=jdbc:postgresql://midpoint_data:5432/midpoint
-     - MP_SET_midpoint_repository_database=postgresql
-     - MP_SET_midpoint_administrator_initialPassword=Secret.007
-     - MP_UNSET_midpoint_repository_hibernateHbm2ddl=1
-     - MP_NO_ENV_COMPAT=1
-    networks:
-     - net
-    volumes:
-     - midpoint_home:/opt/midpoint/var
-
-networks:
-  net:
-    driver: bridge
-
 volumes:
-  midpoint_data:
   midpoint_home:

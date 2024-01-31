@@ -64,6 +64,7 @@ services:
     volumes:
      - midpoint_home:/opt/midpoint/var
      - log_node1:/opt/midpoint/var/log
+     - ./add_subscription_id.xml:/opt/midpoint/var/post-initial-objects/add_subscription_id.xml
 
   midpoint-server-2:
     image: evolveum/midpoint:${MP_VER:-latest}-alpine
